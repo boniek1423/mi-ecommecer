@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Usuarios - Mi E-commerce</title>
+    <style>
+        /* Mismos estilos que los anteriores */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --sidebar-bg: #2d3748;
+            --header-bg: white;
+            --text-color: #2d3748;
+            --card-bg: white;
+            --border-color: #e2e8f0;
+            --hover-color: #667eea;
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --sidebar-bg: #1a202c;
+            --header-bg: #2d3748;
+            --text-color: #f7fafc;
+            --card-bg: #2d3748;
+            --border-color: #4a5568;
+            --hover-color: #9f7aea;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 2rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .content-header {
+            background: var(--header-bg);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .content-header h1 {
+            color: var(--text-color);
+            font-size: 1.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-color);
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #f687b3, #f56565);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .filters {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filters input, .filters select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .badge-admin { background: #fed7d7; color: #c53030; }
+        .badge-cliente { background: #c6f6d5; color: #22543d; }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.25rem;
+            transition: all 0.3s;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>✨ Admin Panel</h2>
+                <p>Gestiona tu tienda</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin/index.html" class="nav-link">
+                        <i>📊</i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/productos.html" class="nav-link">
+                        <i>📦</i> Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/pedidos.html" class="nav-link">
+                        <i>🛍️</i> Pedidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/usuarios.html" class="nav-link active">
+                        <i>👥</i> Usuarios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/categorias.html" class="nav-link">
+                        <i>📋</i> Categorías
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i>🏠</i> Ver Tienda
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Gestión de Usuarios</h1>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+                    <div class="user-info" id="userInfo">
+                        <span>Cargando...</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Filtros -->
+            <div class="filters">
+                <input type="text" id="busqueda" placeholder="🔍 Buscar por nombre o email..." onkeyup="cargarUsuarios()">
+                <select id="filtroRol" onchange="cargarUsuarios()">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administradores</option>
+                    <option value="cliente">Clientes</option>
+                </select>
+            </div>
+
+            <!-- Tabla de usuarios -->
+            <div class="table-container">
+                <div id="usuariosTable">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let usuario = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initTheme();
+            await verificarAdmin();
+            if (usuario && usuario.rol === 'admin') {
+                cargarUsuarios();
+            }
+        });
+
+        async function verificarAdmin() {
+            try {
+                const res = await fetch('/api/auth/perfil', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success && data.usuario.rol === 'admin') {
+                    usuario = data.usuario;
+                    document.getElementById('userInfo').innerHTML = `
+                        <span>👋 ${usuario.nombre}</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    `;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = '/';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        async function cargarUsuarios() {
+            const container = document.getElementById('usuariosTable');
+            container.innerHTML = '<div class="loading-spinner"></div>';
+
+            try {
+                const busqueda = document.getElementById('busqueda').value;
+                const rol = document.getElementById('filtroRol').value;
+                
+                let url = '/api/usuarios?';
+                if (busqueda) url += `busqueda=${busqueda}&`;
+                if (rol) url += `rol=${rol}&`;
+                
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    mostrarUsuarios(data.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = '<p style="text-align: center; color: #f56565;">Error al cargar usuarios</p>';
+            }
+        }
+
+        function mostrarUsuarios(usuarios) {
+            const container = document.getElementById('usuariosTable');
+            
+            if (!usuarios || usuarios.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay usuarios</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Rol</th><th>Registro</th><th>Acciones</th></tr></thead><tbody>';
+            
+            usuarios.forEach(u => {
+                const rolClass = u.rol === 'admin' ? 'badge-admin' : 'badge-cliente';
+                
+                html += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.nombre}</td>
+                        <td>${u.email}</td>
+                        <td>${u.telefono || '-'}</td>
+                        <td><span class="badge ${rolClass}">${u.rol}</span></td>
+                        <td>${new Date(u.fecha_registro).toLocaleDateString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick="cambiarRol(${u.id}, '${u.rol}')" title="Cambiar rol">🔄</button>
+                                <button class="btn-icon" onclick="verPedidos(${u.id})" title="Ver pedidos">📦</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function cambiarRol(id, rolActual) {
+            const nuevoRol = rolActual === 'admin' ? 'cliente' : 'admin';
+            
+            if (!confirm(`¿Cambiar rol a ${nuevoRol}?`)) return;
+
+            try {
+                const res = await fetch(`/api/usuarios/${id}/rol`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ rol: nuevoRol })
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    cargarUsuarios();
+                    alert('Rol actualizado correctamente');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cambiar rol');
+            }
+        }
+
+        function verPedidos(id) {
+            window.location.href = `/admin/pedidos.html?usuario=${id}`;
+        }
+    </script>
+</body>
+</html>

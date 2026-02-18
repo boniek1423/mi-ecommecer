@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Mi E-commerce</title>
+    <!-- Agregar Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --sidebar-bg: #2d3748;
+            --header-bg: white;
+            --text-color: #2d3748;
+            --card-bg: white;
+            --border-color: #e2e8f0;
+            --hover-color: #667eea;
+            --success: #48bb78;
+            --warning: #ecc94b;
+            --danger: #f56565;
+            --info: #4299e1;
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --sidebar-bg: #1a202c;
+            --header-bg: #2d3748;
+            --text-color: #f7fafc;
+            --card-bg: #2d3748;
+            --border-color: #4a5568;
+            --hover-color: #9f7aea;
+            --success: #68d391;
+            --warning: #f6e05e;
+            --danger: #fc8181;
+            --info: #63b3ed;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Layout */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 2rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .content-header {
+            background: var(--header-bg);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .content-header h1 {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-color);
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #f687b3, #f56565);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        /* Cards de estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            animation: slideIn 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--info), var(--success));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            color: var(--text-color);
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+
+        /* Gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h3 {
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Tablas */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-header h2 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover td {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: #1a202c;
+        }
+
+        .badge-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .badge-pendiente { background: #feebc8; color: #744210; }
+        .badge-pagado { background: #c6f6d5; color: #22543d; }
+        .badge-enviado { background: #bee3f8; color: #2c5282; }
+        .badge-entregado { background: #fefcbf; color: #744210; }
+        .badge-cancelado { background: #fed7d7; color: #c53030; }
+
+        .product-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Filtros de fecha */
+        .date-filters {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-filters input {
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .date-filters button {
+            padding: 0.5rem 1rem;
+            background: var(--info);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>✨ Admin Panel</h2>
+                <p>Gestiona tu tienda</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin/index.html" class="nav-link active">
+                        <i>📊</i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/productos.html" class="nav-link">
+                        <i>📦</i> Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/pedidos.html" class="nav-link">
+                        <i>🛍️</i> Pedidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/usuarios.html" class="nav-link">
+                        <i>👥</i> Usuarios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/categorias.html" class="nav-link">
+                        <i>📋</i> Categorías
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i>🏠</i> Ver Tienda
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h1>
+                    <span>📊 Dashboard</span>
+                    <span id="fechaActual" style="font-size: 0.9rem; opacity: 0.7;"></span>
+                </h1>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+                    <div class="user-info" id="userInfo">
+                        <span>Cargando...</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Filtros de fecha -->
+            <div class="date-filters">
+                <label style="color: var(--text-color);">Período:</label>
+                <input type="date" id="fechaInicio" onchange="cargarEstadisticas()">
+                <input type="date" id="fechaFin" onchange="cargarEstadisticas()">
+                <button onclick="cargarEstadisticas()">Aplicar</button>
+                <button onclick="setPeriodo('hoy')">Hoy</button>
+                <button onclick="setPeriodo('semana')">Esta semana</button>
+                <button onclick="setPeriodo('mes')">Este mes</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="statsContainer">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>💰 Ventas por día</h3>
+                        <span style="color: var(--text-color);" id="totalVentasPeriodo"></span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ventasChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📊 Estado de Pedidos</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="estadosChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>🏆 Productos más vendidos</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="productosChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📦 Pedidos por día</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="pedidosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Últimos Pedidos -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>📦 Últimos Pedidos</h2>
+                    <a href="/admin/pedidos.html" class="btn-primary">Ver todos →</a>
+                </div>
+                <div id="pedidosTable">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+
+            <!-- Productos con Bajo Stock -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>⚠️ Productos con Bajo Stock</h2>
+                    <a href="/admin/productos.html" class="btn-primary">Gestionar →</a>
+                </div>
+                <div id="stockTable">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+
+            <!-- Top Clientes -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>👥 Top Clientes</h2>
+                </div>
+                <div id="clientesTable">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script de carrito (opcional en admin) -->
+    <script src="/js/carrito.js"></script>
+    
+    <script>
+        // Token y estado
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let usuario = null;
+        let charts = {};
+
+        // Inicializar fecha actual
+        document.addEventListener('DOMContentLoaded', () => {
+            const fechaElem = document.getElementById('fechaActual');
+            if (fechaElem) {
+                fechaElem.textContent = new Date().toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            
+            initTheme();
+            verificarAdmin();
+        });
+
+        // Verificar si es admin
+        async function verificarAdmin() {
+            try {
+                const res = await fetch('/api/auth/perfil', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    usuario = data.usuario;
+                    if (usuario.rol !== 'admin') {
+                        window.location.href = '/';
+                        return;
+                    }
+                    document.getElementById('userInfo').innerHTML = `
+                        <span>👋 ${usuario.nombre}</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    `;
+                    
+                    // Cargar datos después de verificar admin
+                    setPeriodo('mes');
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        // Modo oscuro
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (themeToggle) themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (themeToggle) themeToggle.textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                if (themeToggle) themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                if (themeToggle) themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            // Redibujar gráficos con los nuevos colores
+            cargarEstadisticas();
+        }
+
+        // Configurar período
+        function setPeriodo(periodo) {
+            const hoy = new Date();
+            let inicio = new Date();
+            
+            switch(periodo) {
+                case 'hoy':
+                    inicio = hoy;
+                    break;
+                case 'semana':
+                    inicio.setDate(hoy.getDate() - 7);
+                    break;
+                case 'mes':
+                    inicio.setMonth(hoy.getMonth() - 1);
+                    break;
+            }
+            
+            const fechaInicio = document.getElementById('fechaInicio');
+            const fechaFin = document.getElementById('fechaFin');
+            
+            if (fechaInicio) fechaInicio.value = inicio.toISOString().split('T')[0];
+            if (fechaFin) fechaFin.value = hoy.toISOString().split('T')[0];
+            
+            cargarEstadisticas();
+        }
+
+        // Cargar estadísticas
+        async function cargarEstadisticas() {
+            try {
+                // Mostrar loading en statsContainer
+                const statsContainer = document.getElementById('statsContainer');
+                if (statsContainer) {
+                    statsContainer.innerHTML = '<div class="loading-spinner"></div>';
+                }
+                
+                // Obtener estadísticas generales
+                const resStats = await fetch('/api/pedidos/admin/estadisticas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataStats = await resStats.json();
+                
+                // Obtener productos
+                const resProductos = await fetch('/api/productos', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataProductos = await resProductos.json();
+                
+                // Obtener pedidos
+                const resPedidos = await fetch('/api/pedidos/admin/todos?limite=10', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const dataPedidos = await resPedidos.json();
+                
+                if (dataStats.success) {
+                    mostrarEstadisticas(dataStats.data, dataProductos.data, dataPedidos.data?.pedidos || []);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const statsContainer = document.getElementById('statsContainer');
+                if (statsContainer) {
+                    statsContainer.innerHTML = '<p style="color: var(--danger); text-align: center;">Error al cargar estadísticas</p>';
+                }
+            }
+        }
+
+        function mostrarEstadisticas(estadisticas, productos, pedidos) {
+            mostrarCards(estadisticas, productos);
+            crearGraficos(estadisticas);
+            mostrarUltimosPedidos(pedidos);
+            mostrarProductosBajoStock(productos);
+            mostrarTopClientes(pedidos);
+        }
+
+        function mostrarCards(estadisticas, productos) {
+            const container = document.getElementById('statsContainer');
+            if (!container) return;
+            
+            // Calcular totales
+            const totalVentas = estadisticas.porEstado?.reduce((sum, item) => sum + parseFloat(item.monto_total || 0), 0) || 0;
+            const totalPedidos = estadisticas.porEstado?.reduce((sum, item) => sum + item.total, 0) || 0;
+            
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ventas Totales</span>
+                        <span class="stat-icon">💰</span>
+                    </div>
+                    <div class="stat-value">$${totalVentas.toFixed(2)}</div>
+                    <div class="stat-change positive">
+                        <span>📈 Período actual</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Pedidos Totales</span>
+                        <span class="stat-icon">📦</span>
+                    </div>
+                    <div class="stat-value">${totalPedidos}</div>
+                    <div class="stat-change positive">
+                        <span>📈 En el período</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Productos</span>
+                        <span class="stat-icon">🛍️</span>
+                    </div>
+                    <div class="stat-value">${productos?.length || 0}</div>
+                    <div class="stat-change">
+                        <span>${productos?.filter(p => p.stock < 10).length || 0} con stock bajo</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Ticket Promedio</span>
+                        <span class="stat-icon">🎫</span>
+                    </div>
+                    <div class="stat-value">$${(totalVentas / (totalPedidos || 1)).toFixed(2)}</div>
+                    <div class="stat-change">
+                        <span>por pedido</span>
+                    </div>
+                </div>
+            `;
+            
+            const totalVentasElem = document.getElementById('totalVentasPeriodo');
+            if (totalVentasElem) {
+                totalVentasElem.textContent = `$${totalVentas.toFixed(2)}`;
+            }
+        }
+
+        function crearGraficos(estadisticas) {
+            // Destruir gráficos existentes
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            
+            // Verificar que hay datos
+            if (!estadisticas.porDia || estadisticas.porDia.length === 0) {
+                console.log('No hay datos para mostrar en gráficos');
+                return;
+            }
+            
+            // Gráfico de ventas por día
+            const ventasCanvas = document.getElementById('ventasChart');
+            if (ventasCanvas) {
+                const ctxVentas = ventasCanvas.getContext('2d');
+                charts.ventas = new Chart(ctxVentas, {
+                    type: 'line',
+                    data: {
+                        labels: estadisticas.porDia?.map(d => new Date(d.fecha).toLocaleDateString()) || [],
+                        datasets: [{
+                            label: 'Ventas ($)',
+                            data: estadisticas.porDia?.map(d => d.ventas) || [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de estados de pedidos
+            if (estadisticas.porEstado && estadisticas.porEstado.length > 0) {
+                const estadosCanvas = document.getElementById('estadosChart');
+                if (estadosCanvas) {
+                    const ctxEstados = estadosCanvas.getContext('2d');
+                    charts.estados = new Chart(ctxEstados, {
+                        type: 'doughnut',
+                        data: {
+                            labels: estadisticas.porEstado?.map(e => e.estado) || [],
+                            datasets: [{
+                                data: estadisticas.porEstado?.map(e => e.total) || [],
+                                backgroundColor: [
+                                    '#fbbf24', // pendiente
+                                    '#34d399', // pagado
+                                    '#60a5fa', // enviado
+                                    '#a78bfa', // entregado
+                                    '#f87171'  // cancelado
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Gráfico de productos más vendidos
+            if (estadisticas.productosVendidos && estadisticas.productosVendidos.length > 0) {
+                const productosCanvas = document.getElementById('productosChart');
+                if (productosCanvas) {
+                    const ctxProductos = productosCanvas.getContext('2d');
+                    charts.productos = new Chart(ctxProductos, {
+                        type: 'bar',
+                        data: {
+                            labels: estadisticas.productosVendidos?.slice(0, 5).map(p => p.nombre) || [],
+                            datasets: [{
+                                label: 'Unidades vendidas',
+                                data: estadisticas.productosVendidos?.slice(0, 5).map(p => p.total_vendido) || [],
+                                backgroundColor: '#667eea'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Gráfico de pedidos por día
+            const pedidosCanvas = document.getElementById('pedidosChart');
+            if (pedidosCanvas) {
+                const ctxPedidos = pedidosCanvas.getContext('2d');
+                charts.pedidos = new Chart(ctxPedidos, {
+                    type: 'bar',
+                    data: {
+                        labels: estadisticas.porDia?.map(d => new Date(d.fecha).toLocaleDateString()) || [],
+                        datasets: [{
+                            label: 'Pedidos',
+                            data: estadisticas.porDia?.map(d => d.total_pedidos) || [],
+                            backgroundColor: '#9f7aea'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+        }
+
+        function mostrarUltimosPedidos(pedidos) {
+            const container = document.getElementById('pedidosTable');
+            if (!container) return;
+            
+            if (!pedidos || pedidos.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay pedidos recientes</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>';
+            
+            pedidos.slice(0, 5).forEach(p => {
+                const estadoClass = `badge-${p.estado}`;
+                
+                html += `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>${p.usuario_nombre || 'Cliente'}</td>
+                        <td>$${parseFloat(p.total).toFixed(2)}</td>
+                        <td><span class="badge ${estadoClass}">${p.estado}</span></td>
+                        <td>${new Date(p.fecha_pedido).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function mostrarProductosBajoStock(productos) {
+            const container = document.getElementById('stockTable');
+            if (!container) return;
+            
+            const bajoStock = productos?.filter(p => p.stock < 10) || [];
+            
+            if (bajoStock.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--success);">✅ Todos los productos tienen stock suficiente</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Producto</th><th>Stock</th><th>Precio</th><th>Acción</th></tr></thead><tbody>';
+            
+            bajoStock.slice(0, 5).forEach(p => {
+                html += `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <img src="${p.imagen_url || 'https://via.placeholder.com/40'}" class="product-image" onerror="this.src='https://via.placeholder.com/40'">
+                                ${p.nombre}
+                            </div>
+                        </td>
+                        <td><span class="badge badge-danger">${p.stock} uds</span></td>
+                        <td>$${parseFloat(p.precio).toFixed(2)}</td>
+                        <td>
+                            <a href="/admin/productos.html?edit=${p.id}" class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.9rem;">
+                                Reabastecer
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function mostrarTopClientes(pedidos) {
+            const container = document.getElementById('clientesTable');
+            if (!container) return;
+            
+            if (!pedidos || pedidos.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay datos de clientes</p>';
+                return;
+            }
+            
+            // Agrupar pedidos por cliente
+            const clientes = {};
+            pedidos.forEach(p => {
+                if (p.usuario_id) {
+                    if (!clientes[p.usuario_id]) {
+                        clientes[p.usuario_id] = {
+                            nombre: p.usuario_nombre || 'Cliente',
+                            pedidos: 0,
+                            total: 0
+                        };
+                    }
+                    clientes[p.usuario_id].pedidos++;
+                    clientes[p.usuario_id].total += parseFloat(p.total || 0);
+                }
+            });
+            
+            const topClientes = Object.values(clientes)
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 5);
+
+            if (topClientes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay datos de clientes</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total comprado</th></tr></thead><tbody>';
+            
+            topClientes.forEach(c => {
+                html += `
+                    <tr>
+                        <td>${c.nombre}</td>
+                        <td>${c.pedidos} pedidos</td>
+                        <td><strong>$${c.total.toFixed(2)}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Funciones del carrito (placeholder para admin)
+        window.cargarCarrito = function() { console.log('Carrito no disponible en admin'); };
+        window.agregarAlCarrito = function() { console.log('Carrito no disponible en admin'); };
+        window.actualizarCantidad = function() { console.log('Carrito no disponible en admin'); };
+        window.eliminarDelCarrito = function() { console.log('Carrito no disponible en admin'); };
+        window.vaciarCarrito = function() { console.log('Carrito no disponible en admin'); };
+        window.toggleCart = function() { console.log('Carrito no disponible en admin'); };
+        window.mostrarNotificacion = function(mensaje, tipo) { alert(mensaje); };
+    </script>
+</body>
+</html>

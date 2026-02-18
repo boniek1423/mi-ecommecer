@@ -1,0 +1,43 @@
+mi-ecommerce/
+│
+├── src/
+│   ├── config/
+│   │   └── db.js              # Configuración de la base de datos
+│   │
+│   ├── controllers/
+│   │   ├── authController.js   # Lógica de login/registro
+│   │   ├── productoController.js # Lógica de productos
+│   │   ├── pedidoController.js  # Lógica de pedidos
+│   │   └── usuarioController.js # Lógica de usuarios
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js       # Rutas de autenticación
+│   │   ├── productoRoutes.js   # Rutas de productos
+│   │   ├── pedidoRoutes.js     # Rutas de pedidos
+│   │   └── usuarioRoutes.js    # Rutas de usuarios
+│   │
+│   ├── middlewares/
+│   │   ├── authMiddleware.js   # Verificar token JWT
+│   │   └── adminMiddleware.js  # Verificar si es admin
+│   │
+│   └── utils/
+│       └── validaciones.js     # Funciones de validación
+│
+├── public/                     # Archivos estáticos (CSS, JS, imágenes)
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+├── views/                      # Si usas EJS o similar
+│   ├── partials/
+│   │   ├── header.ejs
+│   │   └── footer.ejs
+│   ├── index.ejs
+│   ├── productos.ejs
+│   ├── carrito.ejs
+│   └── login.ejs
+│
+├── .env                        # Variables de entorno
+├── .gitignore
+├── package.json
+└── server.js                   # Archivo principal

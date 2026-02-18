@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout - Mi E-commerce</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav a {
+            text-decoration: none;
+            color: #2d3748;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav a:hover {
+            color: #667eea;
+        }
+        
+        .main-content {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        
+        /* Resumen del pedido */
+        .resumen-pedido {
+            background: #f7fafc;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .resumen-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .item-info img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        
+        .item-details h3 {
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+        
+        .item-details p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .item-precio {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e2e8f0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .total span:last-child {
+            color: #667eea;
+        }
+        
+        /* Métodos de pago */
+        .metodos-pago {
+            margin-bottom: 2rem;
+        }
+        
+        .metodos-pago h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .metodo-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .metodo-card:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+        
+        .metodo-card.selected {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+        
+        .metodo-card input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+        
+        .metodo-info {
+            flex: 1;
+        }
+        
+        .metodo-info h3 {
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metodo-info p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        /* Formulario de dirección */
+        .direccion-form {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f7fafc;
+            border-radius: 16px;
+        }
+        
+        .direccion-form h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        /* Botones */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+            margin-right: 1rem;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        .acciones {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Alertas */
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-success { 
+            background: #c6f6d5; 
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .alert-error { 
+            background: #fed7d7; 
+            color: #c53030;
+            border-left: 4px solid #f56565;
+        }
+        
+        .alert-info { 
+            background: #bee3f8; 
+            color: #2c5282;
+            border-left: 4px solid #4299e1;
+        }
+        
+        /* Utilidades */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn-logout {
+            background: linear-gradient(135deg, #f687b3, #f56565);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .precio-total {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .empty-cart h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-cart p {
+            color: #718096;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">✨ Mi Tienda ✨</div>
+            <nav class="nav">
+                <a href="/">Inicio</a>
+                <a href="/mis-pedidos.html">Mis Pedidos</a>
+                <div id="userSection"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1>💳 Finalizar Compra</h1>
+        
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando información de tu compra...</p>
+        </div>
+
+        <div id="errorContainer" style="display: none;"></div>
+        
+        <div id="checkoutContent" style="display: none;">
+            <!-- Resumen del pedido -->
+            <div class="resumen-pedido" id="resumenPedido"></div>
+
+            <!-- Métodos de pago -->
+            <div class="metodos-pago">
+                <h2>💰 Método de Pago</h2>
+                <div class="metodo-card selected">
+                    <input type="radio" name="metodoPago" id="stripe" checked>
+                    <div class="metodo-info">
+                        <h3>💳 Tarjeta de Crédito/Débito</h3>
+                        <p>Paga de forma segura con Stripe • Aceptamos Visa, Mastercard, American Express</p>
+                    </div>
+                </div>
+                
+                <div class="metodo-card" onclick="alert('Próximamente disponible')">
+                    <input type="radio" name="metodoPago" id="paypal">
+                    <div class="metodo-info">
+                        <h3>🅿️ PayPal</h3>
+                        <p>Paga con tu cuenta de PayPal de forma rápida y segura (Próximamente)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dirección de envío -->
+            <div class="direccion-form">
+                <h2>📦 Dirección de Envío</h2>
+                <div class="form-group">
+                    <label for="direccion">Dirección completa</label>
+                    <input type="text" id="direccion" placeholder="Calle, número, colonia, ciudad, código postal" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="telefono">Teléfono de contacto</label>
+                        <input type="tel" id="telefono" placeholder="Ej: 555-123-4567" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notas">Notas (opcional)</label>
+                        <input type="text" id="notas" placeholder="Instrucciones especiales">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="acciones">
+                <button class="btn btn-secondary" onclick="window.location.href='/'">← Seguir comprando</button>
+                <button class="btn btn-primary" id="pagarBtn" onclick="procesarPago()">
+                    💳 Proceder al Pago Seguro
+                </button>
+            </div>
+            <p style="text-align: center; margin-top: 1rem; color: #718096; font-size: 0.9rem;">
+                🔒 Tus datos están protegidos con encriptación SSL
+            </p>
+        </div>
+
+        <div id="successContent" style="display: none;">
+            <div class="alert alert-success">
+                <h2>✅ ¡Pago exitoso!</h2>
+                <p>Tu pedido ha sido procesado correctamente. Recibirás un correo con los detalles.</p>
+            </div>
+            <div id="pedidoDetalles" style="margin: 2rem 0;"></div>
+            <button class="btn btn-primary" onclick="window.location.href='/'" style="width: 100%;">
+                Volver a la tienda
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        
+        // Verificar autenticación
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let usuario = null;
+        let carrito = { items: [], total: 0 };
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await verificarUsuario();
+            await cargarCarrito();
+        });
+
+        // Verificar usuario
+        async function verificarUsuario() {
+            try {
+                const res = await fetch('/api/auth/perfil', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    usuario = data.usuario;
+                    actualizarUIUsuario();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al verificar usuario');
+            }
+        }
+
+        function actualizarUIUsuario() {
+            const userSection = document.getElementById('userSection');
+            if (usuario) {
+                userSection.innerHTML = `
+                    <span>👋 Hola, ${usuario.nombre}</span>
+                    <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        // Cargar carrito
+        async function cargarCarrito() {
+            try {
+                const res = await fetch('/api/carrito', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Error al cargar el carrito');
+                }
+                
+                const data = await res.json();
+                
+                if (data.success && data.data.items.length > 0) {
+                    carrito = data.data;
+                    
+                    // Verificar stock antes de mostrar checkout
+                    await verificarStock();
+                    
+                    mostrarResumen();
+                    cargarDireccionUsuario();
+                } else {
+                    mostrarCarritoVacio();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error al cargar el carrito');
+            }
+        }
+
+        // Verificar stock
+        async function verificarStock() {
+            try {
+                const res = await fetch('/api/carrito/verificar-stock', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (!data.success || !data.data.stockDisponible) {
+                    const itemsSinStock = data.data.itemsSinStock || [];
+                    let mensaje = 'Algunos productos no tienen stock disponible:\n';
+                    itemsSinStock.forEach(item => {
+                        mensaje += `- ${item.nombre}: disponible ${item.stock_disponible}, solicitado ${item.cantidad}\n`;
+                    });
+                    alert(mensaje);
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Mostrar resumen del pedido
+        function mostrarResumen() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('checkoutContent').style.display = 'block';
+            
+            const resumen = document.getElementById('resumenPedido');
+            resumen.innerHTML = '<h2 style="margin-bottom: 1rem;">🛍️ Resumen del Pedido</h2>';
+            
+            carrito.items.forEach(item => {
+                resumen.innerHTML += `
+                    <div class="resumen-item">
+                        <div class="item-info">
+                            <img src="${item.imagen_url || 'https://via.placeholder.com/60'}" alt="${item.nombre}">
+                            <div class="item-details">
+                                <h3>${item.nombre}</h3>
+                                <p>Cantidad: ${item.cantidad}</p>
+                            </div>
+                        </div>
+                        <div class="item-precio">$${item.subtotal}</div>
+                    </div>
+                `;
+            });
+            
+            resumen.innerHTML += `
+                <div class="total">
+                    <span>Total a pagar:</span>
+                    <span class="precio-total">$${carrito.total}</span>
+                </div>
+            `;
+        }
+
+        // Cargar dirección del usuario
+        async function cargarDireccionUsuario() {
+            if (usuario && usuario.direccion) {
+                document.getElementById('direccion').value = usuario.direccion;
+            }
+            if (usuario && usuario.telefono) {
+                document.getElementById('telefono').value = usuario.telefono;
+            }
+        }
+
+        // Mostrar carrito vacío
+        function mostrarCarritoVacio() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('checkoutContent').style.display = 'none';
+            
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <div class="empty-cart">
+                    <h2>🛒 Tu carrito está vacío</h2>
+                    <p>Agrega algunos productos antes de continuar con el pago.</p>
+                    <button class="btn btn-primary" onclick="window.location.href='/'">
+                        Ver productos
+                    </button>
+                </div>
+            `;
+        }
+
+        // Mostrar error
+        function mostrarError(mensaje) {
+            document.getElementById('loading').style.display = 'none';
+            
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <div class="alert alert-error">
+                    <strong>❌ Error:</strong> ${mensaje}
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='/'" style="margin-top: 1rem;">
+                    Volver al inicio
+                </button>
+            `;
+        }
+
+        // Procesar pago
+        async function procesarPago() {
+            const direccion = document.getElementById('direccion').value;
+            const telefono = document.getElementById('telefono').value;
+            const notas = document.getElementById('notas').value;
+
+            if (!direccion) {
+                alert('Por favor ingresa tu dirección de envío');
+                return;
+            }
+
+            if (!telefono) {
+                alert('Por favor ingresa tu teléfono de contacto');
+                return;
+            }
+
+            const btn = document.getElementById('pagarBtn');
+            btn.disabled = true;
+            btn.textContent = 'Procesando pago...';
+
+            try {
+                // Aquí iría la integración con Stripe
+                // Por ahora simulamos un pago exitoso
+                
+                // Crear el pedido en el backend
+                const res = await fetch('/api/pedidos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        direccion_envio: direccion,
+                        notas: notas,
+                        telefono: telefono
+                    })
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    mostrarExito(data.data);
+                } else {
+                    alert('Error al procesar el pedido: ' + data.message);
+                    btn.disabled = false;
+                    btn.textContent = '💳 Proceder al Pago Seguro';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar el pago');
+                btn.disabled = false;
+                btn.textContent = '💳 Proceder al Pago Seguro';
+            }
+        }
+
+        // Mostrar éxito
+        function mostrarExito(pedido) {
+            document.getElementById('checkoutContent').style.display = 'none';
+            document.getElementById('successContent').style.display = 'block';
+            
+            const detalles = document.getElementById('pedidoDetalles');
+            detalles.innerHTML = `
+                <div class="alert alert-info">
+                    <p><strong>📦 Número de pedido:</strong> #${pedido.id}</p>
+                    <p><strong>💰 Total pagado:</strong> $${pedido.total}</p>
+                    <p><strong>📅 Fecha:</strong> ${new Date(pedido.fecha_pedido).toLocaleString()}</p>
+                    <p><strong>🚚 Estado:</strong> ${pedido.estado}</p>
+                </div>
+                <p style="text-align: center; margin-top: 1rem;">
+                    Recibirás un correo electrónico con los detalles de tu compra.
+                </p>
+            `;
+        }
+    </script>
+</body>
+</html>

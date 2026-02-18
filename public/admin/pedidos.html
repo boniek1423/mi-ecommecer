@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Pedidos - Mi E-commerce</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --sidebar-bg: #2d3748;
+            --header-bg: white;
+            --text-color: #2d3748;
+            --card-bg: white;
+            --border-color: #e2e8f0;
+            --hover-color: #667eea;
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --sidebar-bg: #1a202c;
+            --header-bg: #2d3748;
+            --text-color: #f7fafc;
+            --card-bg: #2d3748;
+            --border-color: #4a5568;
+            --hover-color: #9f7aea;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 2rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .content-header {
+            background: var(--header-bg);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .content-header h1 {
+            color: var(--text-color);
+            font-size: 1.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-color);
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #f687b3, #f56565);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .filters {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filters input, .filters select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-pendiente { background: #feebc8; color: #744210; }
+        .badge-pagado { background: #c6f6d5; color: #22543d; }
+        .badge-enviado { background: #bee3f8; color: #2c5282; }
+        .badge-entregado { background: #fefcbf; color: #744210; }
+        .badge-cancelado { background: #fed7d7; color: #c53030; }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.25rem;
+            transition: all 0.3s;
+        }
+
+        .btn-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.active { display: block; }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--text-color);
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-group {
+            margin-bottom: 1rem;
+        }
+
+        .info-group label {
+            font-weight: 600;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-group p {
+            color: var(--text-color);
+            padding: 0.5rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .estado-selector {
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            width: 100%;
+        }
+
+        .productos-table {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .productos-table th {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .total-order {
+            text-align: right;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .overlay.active { display: block; }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>✨ Admin Panel</h2>
+                <p>Gestiona tu tienda</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/admin/index.html" class="nav-link">
+                        <i>📊</i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/productos.html" class="nav-link">
+                        <i>📦</i> Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/pedidos.html" class="nav-link active">
+                        <i>🛍️</i> Pedidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/usuarios.html" class="nav-link">
+                        <i>👥</i> Usuarios
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/categorias.html" class="nav-link">
+                        <i>📋</i> Categorías
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i>🏠</i> Ver Tienda
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Gestión de Pedidos</h1>
+                <div class="header-actions">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
+                    <div class="user-info" id="userInfo">
+                        <span>Cargando...</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Filtros -->
+            <div class="filters">
+                <input type="text" id="busqueda" placeholder="🔍 Buscar por cliente o ID..." onkeyup="cargarPedidos()">
+                <select id="filtroEstado" onchange="cargarPedidos()">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="pagado">Pagado</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+                <input type="date" id="fechaDesde" onchange="cargarPedidos()" placeholder="Fecha desde">
+                <input type="date" id="fechaHasta" onchange="cargarPedidos()" placeholder="Fecha hasta">
+            </div>
+
+            <!-- Tabla de pedidos -->
+            <div class="table-container">
+                <div id="pedidosTable">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Pedido -->
+    <div id="pedidoModal" class="modal">
+        <div class="modal-header">
+            <h2 id="modalTitle">Detalle del Pedido</h2>
+            <button class="close-modal" onclick="cerrarModal()">×</button>
+        </div>
+        
+        <div id="pedidoDetalles"></div>
+    </div>
+    <div id="overlay" class="overlay" onclick="cerrarModal()"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let usuario = null;
+        let paginaActual = 1;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initTheme();
+            await verificarAdmin();
+            if (usuario && usuario.rol === 'admin') {
+                cargarPedidos();
+            }
+        });
+
+        async function verificarAdmin() {
+            try {
+                const res = await fetch('/api/auth/perfil', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success && data.usuario.rol === 'admin') {
+                    usuario = data.usuario;
+                    document.getElementById('userInfo').innerHTML = `
+                        <span>👋 ${usuario.nombre}</span>
+                        <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    `;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = '/';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                themeToggle.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                themeToggle.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        async function cargarPedidos(pagina = 1) {
+            paginaActual = pagina;
+            
+            const estado = document.getElementById('filtroEstado').value;
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            const busqueda = document.getElementById('busqueda').value;
+
+            let url = `/api/pedidos/admin/todos?pagina=${pagina}`;
+            if (estado) url += `&estado=${estado}`;
+            if (fechaDesde) url += `&fecha_desde=${fechaDesde}`;
+            if (fechaHasta) url += `&fecha_hasta=${fechaHasta}`;
+            if (busqueda) url += `&busqueda=${busqueda}`;
+
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    mostrarPedidos(data.data.pedidos, data.data.paginacion);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function mostrarPedidos(pedidos, paginacion) {
+            const container = document.getElementById('pedidosTable');
+            
+            if (!pedidos || pedidos.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem;">No hay pedidos</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody>';
+            
+            pedidos.forEach(p => {
+                const estadoClass = `badge-${p.estado}`;
+                
+                html += `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>${p.usuario_nombre}</td>
+                        <td>$${p.total}</td>
+                        <td><span class="badge ${estadoClass}">${p.estado}</span></td>
+                        <td>${new Date(p.fecha_pedido).toLocaleString()}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick="verPedido(${p.id})" title="Ver detalles">👁️</button>
+                                <button class="btn-icon" onclick="editarEstado(${p.id})" title="Cambiar estado">✏️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            
+            if (paginacion && paginacion.paginas > 1) {
+                html += '<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">';
+                for (let i = 1; i <= paginacion.paginas; i++) {
+                    html += `<button onclick="cargarPedidos(${i})" style="padding: 0.5rem 1rem; background: ${i === paginaActual ? '#667eea' : 'var(--card-bg)'}; color: ${i === paginaActual ? 'white' : 'var(--text-color)'}; border: none; border-radius: 5px; cursor: pointer;">${i}</button>`;
+                }
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        async function verPedido(id) {
+            try {
+                const res = await fetch(`/api/pedidos/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    mostrarDetallePedido(data.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al cargar el pedido');
+            }
+        }
+
+        function mostrarDetallePedido(pedido) {
+            const container = document.getElementById('pedidoDetalles');
+            
+            const estadoClass = `badge-${pedido.estado}`;
+            
+            let productosHtml = '';
+            pedido.detalles.forEach(d => {
+                productosHtml += `
+                    <tr>
+                        <td>${d.producto_nombre}</td>
+                        <td>${d.cantidad}</td>
+                        <td>$${d.precio_unitario}</td>
+                        <td>$${d.cantidad * d.precio_unitario}</td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="order-details">
+                    <div>
+                        <h3>Información del Pedido</h3>
+                        <div class="info-group">
+                            <label>Número de Pedido:</label>
+                            <p>#${pedido.id}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Fecha:</label>
+                            <p>${new Date(pedido.fecha_pedido).toLocaleString()}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Estado Actual:</label>
+                            <p><span class="badge ${estadoClass}">${pedido.estado}</span></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Información del Cliente</h3>
+                        <div class="info-group">
+                            <label>Nombre:</label>
+                            <p>${pedido.usuario?.nombre}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Email:</label>
+                            <p>${pedido.usuario?.email}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Teléfono:</label>
+                            <p>${pedido.usuario?.telefono || 'No proporcionado'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3>Dirección de Envío</h3>
+                    <div class="info-group">
+                        <p>${pedido.direccion_envio}</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3>Productos</h3>
+                    <table class="productos-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${productosHtml}
+                        </tbody>
+                    </table>
+                    <div class="total-order">
+                        Total: $${pedido.total}
+                    </div>
+                </div>
+
+                <div>
+                    <h3>Cambiar Estado</h3>
+                    <select id="nuevoEstado" class="estado-selector">
+                        <option value="pendiente" ${pedido.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="pagado" ${pedido.estado === 'pagado' ? 'selected' : ''}>Pagado</option>
+                        <option value="enviado" ${pedido.estado === 'enviado' ? 'selected' : ''}>Enviado</option>
+                        <option value="entregado" ${pedido.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
+                        <option value="cancelado" ${pedido.estado === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="cerrarModal()">Cerrar</button>
+                    <button class="btn-success" onclick="actualizarEstado(${pedido.id})">Actualizar Estado</button>
+                </div>
+            `;
+
+            document.getElementById('pedidoModal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        async function editarEstado(id) {
+            await verPedido(id);
+        }
+
+        async function actualizarEstado(id) {
+            const nuevoEstado = document.getElementById('nuevoEstado').value;
+            
+            try {
+                const res = await fetch(`/api/pedidos/${id}/estado`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    cerrarModal();
+                    cargarPedidos(paginaActual);
+                    alert('Estado actualizado correctamente');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al actualizar el estado');
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('pedidoModal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

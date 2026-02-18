@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Productos</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .producto-card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-block;
+            width: calc(33.333% - 40px);
+            vertical-align: top;
+        }
+        .producto-card img { 
+            max-width: 100%; 
+            height: 200px; 
+            object-fit: cover; 
+            border-radius: 4px;
+        }
+        .producto-card h3 { margin: 10px 0; }
+        .precio { 
+            font-size: 1.2em; 
+            color: #2c3e50; 
+            font-weight: bold; 
+        }
+        .stock { color: #27ae60; }
+        .admin-panel { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+        }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 5px 0 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+        }
+        button { 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #2980b9; }
+        button.delete { background: #e74c3c; }
+        button.delete:hover { background: #c0392b; }
+        .login-form { 
+            max-width: 400px; 
+            margin: 50px auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginContainer" class="login-form">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="loginEmail" placeholder="Email" required>
+            <input type="password" id="loginPassword" placeholder="Contraseña" required>
+            <button onclick="login()">Ingresar</button>
+            <p id="loginError" style="color: red;"></p>
+        </div>
+
+        <!-- Admin Panel (hidden by default) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <h2>Panel de Administración</h2>
+            <form id="productoForm">
+                <input type="text" id="nombre" placeholder="Nombre del producto" required>
+                <textarea id="descripcion" placeholder="Descripción" rows="3"></textarea>
+                <input type="number" id="precio" placeholder="Precio" step="0.01" required>
+                <input type="number" id="stock" placeholder="Stock" required>
+                <select id="categoria_id">
+                    <option value="">Seleccionar categoría</option>
+                </select>
+                <input type="text" id="imagen_url" placeholder="URL de la imagen">
+                <label>
+                    <input type="checkbox" id="destacado"> Producto destacado
+                </label>
+                <button type="submit">Crear Producto</button>
+            </form>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </div>
+
+        <!-- Product List -->
+        <h1>Nuestros Productos</h1>
+        <div>
+            <input type="text" id="busqueda" placeholder="Buscar productos..." onkeyup="cargarProductos()">
+            <select id="filtroCategoria" onchange="cargarProductos()">
+                <option value="">Todas las categorías</option>
+            </select>
+        </div>
+        <div id="productosContainer"></div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let usuario = null;
+
+        // Verificar si hay token al cargar
+        if (token) {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            cargarCategorias();
+            cargarProductos();
+            verificarAdmin();
+        } else {
+            cargarCategorias();
+            cargarProductos();
+        }
+
+        // Login
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    token = data.token;
+                    usuario = data.usuario;
+                    localStorage.setItem('token', token);
+                    document.getElementById('loginContainer').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    document.getElementById('loginError').textContent = '';
+                    cargarCategorias();
+                    verificarAdmin();
+                } else {
+                    document.getElementById('loginError').textContent = data.message;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            usuario = null;
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            cargarProductos();
+        }
+
+        // Verificar si es admin
+        async function verificarAdmin() {
+            if (!token) return;
+            
+            try {
+                const res = await fetch('/api/auth/perfil', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.usuario.rol === 'admin') {
+                    // Mostrar panel admin
+                } else {
+                    document.getElementById('adminPanel').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar categorías
+        async function cargarCategorias() {
+            try {
+                const res = await fetch('/api/categorias');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const selectFiltro = document.getElementById('filtroCategoria');
+                    const selectForm = document.getElementById('categoria_id');
+                    
+                    data.data.forEach(cat => {
+                        selectFiltro.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                        selectForm.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar productos
+        async function cargarProductos() {
+            try {
+                const busqueda = document.getElementById('busqueda').value;
+                const categoria = document.getElementById('filtroCategoria').value;
+                
+                let url = '/api/productos?';
+                if (busqueda) url += `busqueda=${busqueda}&`;
+                if (categoria) url += `categoria=${categoria}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.success) {
+                    mostrarProductos(data.data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Mostrar productos
+        function mostrarProductos(productos) {
+            const container = document.getElementById('productosContainer');
+            container.innerHTML = '';
+            
+            productos.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'producto-card';
+                card.innerHTML = `
+                    <img src="${p.imagen_url || 'https://via.placeholder.com/300'}" alt="${p.nombre}">
+                    <h3>${p.nombre}</h3>
+                    <p>${p.descripcion || 'Sin descripción'}</p>
+                    <div class="precio">$${p.precio}</div>
+                    <div class="stock">Stock: ${p.stock}</div>
+                    <small>Categoría: ${p.categoria_nombre || 'Sin categoría'}</small>
+                    ${token && usuario?.rol === 'admin' ? `
+                        <div>
+                            <button onclick="editarProducto(${p.id})">Editar</button>
+                            <button class="delete" onclick="eliminarProducto(${p.id})">Eliminar</button>
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Crear producto
+        document.getElementById('productoForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const producto = {
+                nombre: document.getElementById('nombre').value,
+                descripcion: document.getElementById('descripcion').value,
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value),
+                categoria_id: document.getElementById('categoria_id').value || null,
+                imagen_url: document.getElementById('imagen_url').value || null,
+                destacado: document.getElementById('destacado').checked
+            };
+
+            try {
+                const res = await fetch('/api/productos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(producto)
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('Producto creado exitosamente');
+                    cargarProductos();
+                    e.target.reset();
+                } else {
+                    alert('Error: ' + (data.message || 'No se pudo crear el producto'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error del servidor');
+            }
+        };
+
+        // Eliminar producto
+        async function eliminarProducto(id) {
+            if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+            
+            try {
+                const res = await fetch(`/api/productos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('Producto eliminado');
+                    cargarProductos();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Editar producto (función básica - puedes mejorarla)
+        async function editarProducto(id) {
+            const nuevoNombre = prompt('Nuevo nombre:');
+            if (nuevoNombre) {
+                try {
+                    const res = await fetch(`/api/productos/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ nombre: nuevoNombre })
+                    });
+
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        alert('Producto actualizado');
+                        cargarProductos();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

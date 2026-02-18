@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Auth</title>
+</head>
+<body>
+    <h2>Registro</h2>
+    <form id="registroForm">
+        <input type="text" id="regNombre" placeholder="Nombre" required><br>
+        <input type="email" id="regEmail" placeholder="Email" required><br>
+        <input type="password" id="regPassword" placeholder="Contraseña" required><br>
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required><br>
+        <input type="password" id="loginPassword" placeholder="Contraseña" required><br>
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <script>
+        // Registro
+        document.getElementById('registroForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/auth/registro', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nombre: document.getElementById('regNombre').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value
+                })
+            });
+            const data = await res.json();
+            document.getElementById('resultado').innerHTML = 
+                `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        };
+
+        // Login
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            const data = await res.json();
+            document.getElementById('resultado').innerHTML = 
+                `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+            }
+        };
+    </script>
+</body>
+</html>
