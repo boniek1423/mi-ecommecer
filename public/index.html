@@ -784,6 +784,26 @@ body {
             }
         });
 
+        // Función para obtener imagen placeholder confiable
+        function getPlaceholderImage(tipo = 'producto', id = 1) {
+            const placeholders = {
+                producto: `https://picsum.photos/300/200?random=${id}`,
+                carrito: `https://picsum.photos/80/80?random=${id}`,
+                fallback: 'https://picsum.photos/300/200?random=1'
+            };
+            return placeholders[tipo] || placeholders.fallback;
+        }
+
+        // Función para manejar error de imagen
+        function handleImageError(img, tipo = 'producto') {
+            img.onerror = null; // Evita loops infinitos
+            if (tipo === 'producto') {
+                img.src = 'https://picsum.photos/300/200?random=fallback';
+            } else {
+                img.src = 'https://picsum.photos/80/80?random=fallback';
+            }
+        }
+        
         // ========== MODO OSCURO ==========
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -1051,8 +1071,10 @@ body {
             productos.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
-                card.innerHTML = `
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/300'}" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/300'">
+               card.innerHTML = `
+                    <img src="${p.imagen_url || 'https://picsum.photos/300/200?random=' + p.id}" 
+                        alt="${p.nombre}" 
+                        onerror="this.onerror=null; this.src='https://picsum.photos/300/200?random=1'">
                     <div class="product-info">
                         <h3 class="product-title">${p.nombre}</h3>
                         <div class="product-price">$${parseFloat(p.precio).toFixed(2)}</div>
