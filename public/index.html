@@ -31,13 +31,16 @@
             --cart-bg: #1a202c;
         }
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-        
+        * Modifica el body existente */
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+    /* Agrega estas 3 líneas */
+    display: flex;
+    flex-direction: column;
+}
         /* Header */
         .header {
             background: var(--header-bg);
@@ -108,6 +111,32 @@
             transform: scale(1.1);
             background: rgba(102, 126, 234, 0.1);
         }
+
+
+        /* Agrega esto para que el contenido empuje al footer */
+.main-content { 
+    max-width: 1200px; 
+    margin: 2rem auto; 
+    padding: 0 1rem;
+    flex: 1; /* Esto hace que el main crezca y ocupe el espacio */
+}
+
+/* Estilo del Footer */
+.footer {
+    background: var(--header-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+    padding: 2rem 1rem;
+    margin-top: 3rem;
+    color: var(--text-color);
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
         
         /* Carrito icono */
         .cart-icon {
@@ -721,6 +750,20 @@
 
     <!-- Contenedor de notificaciones -->
     <div id="notificationContainer"></div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="logo" style="margin-bottom: 1rem;">✨ Mi Tienda ✨</div>
+            <p style="opacity: 0.8; margin-bottom: 0.5rem;">
+                © 2026 Todos los derechos reservados.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 1rem; font-size: 0.9rem;">
+                <a href="#" style="color: var(--hover-color); text-decoration: none;">Privacidad</a>
+                <a href="#" style="color: var(--hover-color); text-decoration: none;">Términos</a>
+                <a href="#" style="color: var(--hover-color); text-decoration: none;">Contacto</a>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // Estado de la aplicación

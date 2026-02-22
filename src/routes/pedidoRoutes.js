@@ -1,73 +1,68 @@
+// src/routes/pedidoRoutes.js
 const express = require('express');
 const router = express.Router();
 const pedidoController = require('../controllers/pedidoController');
-const authMiddleware = require('../middlewares/authMiddleware');
-const adminMiddleware = require('../middlewares/adminMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
-// ========== MIDDLEWARE DE AUTENTICACIÓN ==========
-// Todas las rutas requieren autenticación
-router.use(authMiddleware);
-
-// ========== RUTAS PARA USUARIOS (CLIENTES) ==========
-
-/**
- * @route   GET /api/pedidos/mis-pedidos
- * @desc    Obtener los pedidos del usuario actual
- * @access  Privado (usuario autenticado)
- */
-router.get('/mis-pedidos', pedidoController.getMisPedidos);
-
-/**
- * @route   GET /api/pedidos/:id
- * @desc    Obtener un pedido específico por ID
- * @access  Privado (usuario dueño del pedido o admin)
- */
-router.get('/:id', pedidoController.getPedidoById);
+// ============= RUTAS PARA USUARIOS AUTENTICADOS =============
+// Todas las rutas en este archivo requieren autenticación
+router.use(authMiddleware); // ✅ Esto es correcto, usa authMiddleware como handler
 
 /**
  * @route   POST /api/pedidos
  * @desc    Crear un nuevo pedido desde el carrito
- * @access  Privado (usuario autenticado)
+ * @access  Privado
  */
-router.post('/', pedidoController.crearPedido);
+router.post('/', pedidoController.crear);
 
 /**
- * @route   POST /api/pedidos/:id/cancelar
- * @desc    Cancelar un pedido (solo si está pendiente)
- * @access  Privado (usuario dueño del pedido)
+ * @route   GET /api/pedidos/mis-pedidos
+ * @desc    Listar pedidos del usuario actual
+ * @access  Privado
  */
-router.post('/:id/cancelar', pedidoController.cancelarPedido);
+router.get('/mis-pedidos', pedidoController.listarMisPedidos);
 
-// ========== RUTAS PARA ADMINISTRADORES ==========
+/**
+ * @route   GET /api/pedidos/:id
+ * @desc    Obtener detalle de un pedido específico
+ * @access  Privado
+ */
+router.get('/:id', pedidoController.obtenerDetalle);
 
+/**
+ * @route   PUT /api/pedidos/:id/cancelar
+ * @desc    Cancelar un pedido (solo si está pendiente)
+ * @access  Privado
+ */
+router.put('/:id/cancelar', pedidoController.cancelar);
+
+// ============= RUTAS SOLO PARA ADMIN =============
 /**
  * @route   GET /api/pedidos/admin/todos
- * @desc    Obtener todos los pedidos (con filtros opcionales)
- * @access  Privado (solo admin)
- * @query   ?estado=pagado&usuario_id=1&fecha_desde=2024-01-01&pagina=1&limite=20&busqueda=texto
+ * @desc    Listar todos los pedidos (admin)
+ * @access  Privado (admin)
  */
-router.get('/admin/todos', adminMiddleware, pedidoController.getAllPedidos);
+router.get('/admin/todos', adminMiddleware, pedidoController.listarTodos);
 
 /**
  * @route   GET /api/pedidos/admin/estadisticas
- * @desc    Obtener estadísticas completas para el dashboard
- * @access  Privado (solo admin)
+ * @desc    Obtener estadísticas de pedidos (admin)
+ * @access  Privado (admin)
  */
-router.get('/admin/estadisticas', adminMiddleware, pedidoController.getEstadisticas);
+router.get('/admin/estadisticas', adminMiddleware, pedidoController.obtenerEstadisticas);
 
 /**
- * @route   GET /api/pedidos/admin/resumen
- * @desc    Obtener resumen rápido para el dashboard (pedidos hoy, ventas hoy, etc.)
- * @access  Privado (solo admin)
+ * @route   PUT /api/pedidos/admin/:id/estado
+ * @desc    Actualizar estado de un pedido (admin)
+ * @access  Privado (admin)
  */
-router.get('/admin/resumen', adminMiddleware, pedidoController.getResumen);
+router.put('/admin/:id/estado', adminMiddleware, pedidoController.actualizarEstado);
 
 /**
- * @route   PUT /api/pedidos/:id/estado
- * @desc    Actualizar el estado de un pedido
- * @access  Privado (solo admin)
- * @body    { estado: "enviado", comentario: "Opcional" }
+ * @route   GET /api/pedidos/admin/usuario/:usuarioId
+ * @desc    Obtener pedidos de un usuario específico (admin)
+ * @access  Privado (admin)
  */
-router.put('/:id/estado', adminMiddleware, pedidoController.actualizarEstado);
+router.get('/admin/usuario/:usuarioId', adminMiddleware, pedidoController.obtenerPedidosPorUsuario);
 
 module.exports = router;

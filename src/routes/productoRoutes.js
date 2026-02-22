@@ -1,48 +1,67 @@
+// src/routes/productoRoutes.js
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const productoController = require('../controllers/productoController');
-const authMiddleware = require('../middlewares/authMiddleware');
-const adminMiddleware = require('../middlewares/adminMiddleware');
+const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
-// Validaciones para crear/actualizar productos
+// Validaciones para crear/actualizar producto
 const validacionesProducto = [
     body('nombre').notEmpty().withMessage('El nombre es requerido'),
-    body('precio').isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo'),
-    body('stock').optional().isInt({ min: 0 }).withMessage('El stock debe ser un número entero positivo'),
-    body('categoria_id').optional().isInt().withMessage('ID de categoría inválido'),
-    body('destacado').optional().isBoolean().withMessage('Destacado debe ser true o false')
+    body('precio').isNumeric().withMessage('El precio debe ser un número'),
+    body('stock').isInt({ min: 0 }).withMessage('El stock debe ser un número entero'),
+    body('categoria_id').optional().isInt().withMessage('La categoría debe ser un ID válido')
 ];
 
-// Rutas públicas
-router.get('/', productoController.getAll);
-router.get('/:id', productoController.getById);
+// ============= RUTAS PÚBLICAS =============
+/**
+ * @route   GET /api/productos
+ * @desc    Obtener todos los productos
+ * @access  Público
+ */
+router.get('/', productoController.listar);
 
-// Rutas protegidas (solo admin)
+/**
+ * @route   GET /api/productos/:id
+ * @desc    Obtener un producto por ID
+ * @access  Público
+ */
+router.get('/:id', productoController.obtenerPorId);
+
+// ============= RUTAS PROTEGIDAS (SOLO ADMIN) =============
+/**
+ * @route   POST /api/productos
+ * @desc    Crear un nuevo producto
+ * @access  Privado (solo admin)
+ */
 router.post('/', 
     authMiddleware, 
     adminMiddleware, 
     validacionesProducto, 
-    productoController.create
+    productoController.crear
 );
 
+/**
+ * @route   PUT /api/productos/:id
+ * @desc    Actualizar un producto
+ * @access  Privado (solo admin)
+ */
 router.put('/:id', 
     authMiddleware, 
     adminMiddleware, 
     validacionesProducto, 
-    productoController.update
+    productoController.actualizar
 );
 
+/**
+ * @route   DELETE /api/productos/:id
+ * @desc    Eliminar un producto
+ * @access  Privado (solo admin)
+ */
 router.delete('/:id', 
     authMiddleware, 
     adminMiddleware, 
-    productoController.delete
-);
-
-// Ruta especial para actualizar stock (puede ser usada por el sistema)
-router.patch('/:id/stock', 
-    authMiddleware, 
-    productoController.updateStock
+    productoController.eliminar
 );
 
 module.exports = router;

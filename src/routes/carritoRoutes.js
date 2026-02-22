@@ -1,28 +1,52 @@
+// src/routes/carritoRoutes.js
 const express = require('express');
 const router = express.Router();
-const { body } = require('express-validator');
 const carritoController = require('../controllers/carritoController');
-const authMiddleware = require('../middlewares/authMiddleware');
-
-// Validaciones
-const validacionesAgregar = [
-    body('producto_id').isInt().withMessage('ID de producto inválido'),
-    body('cantidad').isInt({ min: 1 }).withMessage('La cantidad debe ser al menos 1')
-];
-
-const validacionesActualizar = [
-    body('cantidad').isInt({ min: 1 }).withMessage('La cantidad debe ser al menos 1')
-];
+const { authMiddleware } = require('../middlewares/authMiddleware');
 
 // Todas las rutas del carrito requieren autenticación
 router.use(authMiddleware);
 
-// Rutas del carrito
-router.get('/', carritoController.getCarrito);
-router.post('/agregar', validacionesAgregar, carritoController.agregarProducto);
-router.put('/item/:itemId', validacionesActualizar, carritoController.actualizarCantidad);
-router.delete('/item/:itemId', carritoController.eliminarProducto);
-router.delete('/', carritoController.vaciarCarrito);
+/**
+ * @route   GET /api/carrito
+ * @desc    Obtener carrito del usuario
+ * @access  Privado
+ */
+router.get('/', carritoController.obtener);
+
+/**
+ * @route   POST /api/carrito/agregar
+ * @desc    Agregar producto al carrito
+ * @access  Privado
+ */
+router.post('/agregar', carritoController.agregar);
+
+/**
+ * @route   PUT /api/carrito/item/:itemId
+ * @desc    Actualizar cantidad de un item
+ * @access  Privado
+ */
+router.put('/item/:itemId', carritoController.actualizarCantidad);
+
+/**
+ * @route   DELETE /api/carrito/item/:itemId
+ * @desc    Eliminar item del carrito
+ * @access  Privado
+ */
+router.delete('/item/:itemId', carritoController.eliminarItem);
+
+/**
+ * @route   DELETE /api/carrito
+ * @desc    Vaciar carrito
+ * @access  Privado
+ */
+router.delete('/', carritoController.vaciar);
+
+/**
+ * @route   GET /api/carrito/verificar-stock
+ * @desc    Verificar stock de items en carrito
+ * @access  Privado
+ */
 router.get('/verificar-stock', carritoController.verificarStock);
 
 module.exports = router;

@@ -1,87 +1,110 @@
+// src/routes/usuarioRoutes.js
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
-const authMiddleware = require('../middlewares/authMiddleware');
-const adminMiddleware = require('../middlewares/adminMiddleware');
+const { body } = require('express-validator');
+const usuarioController = require('../controllers/usuarioController');
+const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
-// Obtener todos los usuarios (solo admin)
-router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
-    try {
-        const [usuarios] = await db.query(
-            'SELECT id, nombre, email, direccion, telefono, rol, fecha_registro FROM usuarios'
-        );
-        res.json({
-            success: true,
-            data: usuarios
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error del servidor' });
-    }
-});
+// Validaciones para actualizar perfil
+const validacionesActualizarPerfil = [
+    body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío'),
+    body('direccion').optional(),
+    body('telefono').optional().isMobilePhone('es-MX').withMessage('Teléfono válido requerido')
+];
 
-// Obtener un usuario por ID (solo admin o el mismo usuario)
-router.get('/:id', authMiddleware, async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        // Verificar permisos
-        if (req.usuario.rol !== 'admin' && req.usuario.id != id) {
-            return res.status(403).json({
-                success: false,
-                message: 'No tienes permiso para ver este usuario'
-            });
-        }
+// Validaciones para cambiar contraseña
+const validacionesCambiarPassword = [
+    body('passwordActual').notEmpty().withMessage('La contraseña actual es requerida'),
+    body('passwordNueva').isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
+];
 
-        const [usuarios] = await db.query(
-            'SELECT id, nombre, email, direccion, telefono, rol, fecha_registro FROM usuarios WHERE id = ?',
-            [id]
-        );
+// ============= RUTAS PARA USUARIOS AUTENTICADOS =============
+// Todas las rutas en este grupo requieren autenticación
+router.use(authMiddleware); // ✅ Esto es correcto, usa authMiddleware como handler
 
-        if (usuarios.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
+/**
+ * @route   GET /api/usuarios/perfil
+ * @desc    Obtener perfil del usuario actual
+ * @access  Privado
+ */
+router.get('/perfil', usuarioController.obtenerMiPerfil);
 
-        res.json({
-            success: true,
-            data: usuarios[0]
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error del servidor' });
-    }
-});
+/**
+ * @route   PUT /api/usuarios/perfil
+ * @desc    Actualizar perfil del usuario actual
+ * @access  Privado
+ */
+router.put('/perfil', validacionesActualizarPerfil, usuarioController.actualizarMiPerfil);
 
-// Actualizar usuario
-router.put('/:id', authMiddleware, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nombre, direccion, telefono } = req.body;
+/**
+ * @route   POST /api/usuarios/cambiar-password
+ * @desc    Cambiar contraseña del usuario actual
+ * @access  Privado
+ */
+router.post('/cambiar-password', validacionesCambiarPassword, usuarioController.cambiarMiPassword);
 
-        // Verificar permisos
-        if (req.usuario.rol !== 'admin' && req.usuario.id != id) {
-            return res.status(403).json({
-                success: false,
-                message: 'No tienes permiso para editar este usuario'
-            });
-        }
+/**
+ * @route   DELETE /api/usuarios/cuenta
+ * @desc    Eliminar cuenta del usuario actual
+ * @access  Privado
+ */
+router.delete('/cuenta', 
+    body('password').notEmpty().withMessage('La contraseña es requerida'),
+    usuarioController.eliminarMiCuenta
+);
 
-        await db.query(
-            'UPDATE usuarios SET nombre = ?, direccion = ?, telefono = ? WHERE id = ?',
-            [nombre, direccion, telefono, id]
-        );
+// ============= RUTAS SOLO PARA ADMIN =============
+/**
+ * @route   GET /api/usuarios
+ * @desc    Listar todos los usuarios (admin)
+ * @access  Privado (admin)
+ */
+router.get('/', adminMiddleware, usuarioController.listarUsuarios);
 
-        res.json({
-            success: true,
-            message: 'Usuario actualizado exitosamente'
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error del servidor' });
-    }
-});
+/**
+ * @route   GET /api/usuarios/buscar
+ * @desc    Buscar usuarios (admin)
+ * @access  Privado (admin)
+ */
+router.get('/buscar', adminMiddleware, usuarioController.buscarUsuarios);
 
-module.exports = router; // <-- Asegúrate que esta línea existe
+/**
+ * @route   GET /api/usuarios/estadisticas
+ * @desc    Obtener estadísticas de usuarios (admin)
+ * @access  Privado (admin)
+ */
+router.get('/estadisticas', adminMiddleware, usuarioController.obtenerEstadisticas);
+
+/**
+ * @route   GET /api/usuarios/:id
+ * @desc    Obtener usuario por ID (admin)
+ * @access  Privado (admin)
+ */
+router.get('/:id', adminMiddleware, usuarioController.obtenerUsuario);
+
+/**
+ * @route   PUT /api/usuarios/:id
+ * @desc    Actualizar usuario (admin)
+ * @access  Privado (admin)
+ */
+router.put('/:id', adminMiddleware, validacionesActualizarPerfil, usuarioController.actualizarUsuario);
+
+/**
+ * @route   PUT /api/usuarios/:id/rol
+ * @desc    Cambiar rol de usuario (admin)
+ * @access  Privado (admin)
+ */
+router.put('/:id/rol', 
+    adminMiddleware, 
+    body('rol').isIn(['usuario', 'admin']).withMessage('Rol no válido'),
+    usuarioController.cambiarRol
+);
+
+/**
+ * @route   DELETE /api/usuarios/:id
+ * @desc    Eliminar usuario (admin)
+ * @access  Privado (admin)
+ */
+router.delete('/:id', adminMiddleware, usuarioController.eliminarUsuario);
+
+module.exports = router;
