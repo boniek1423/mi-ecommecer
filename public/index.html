@@ -803,7 +803,7 @@ body {
                 img.src = 'https://picsum.photos/80/80?random=fallback';
             }
         }
-        
+
         // ========== MODO OSCURO ==========
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -1237,8 +1237,10 @@ body {
             carrito.items.forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'cart-item';
-                itemElement.innerHTML = `
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/80'}" alt="${item.nombre}" onerror="this.src='https://via.placeholder.com/80'">
+               itemElement.innerHTML = `
+                    <img src="${item.imagen_url || 'https://picsum.photos/80/80?random=' + item.id}" 
+                        alt="${item.nombre}" 
+                        onerror="this.onerror=null; this.src='https://picsum.photos/80/80?random=1'">
                     <div class="cart-item-info">
                         <div class="cart-item-title">${item.nombre}</div>
                         <div class="cart-item-price">$${parseFloat(item.precio).toFixed(2)} c/u</div>
